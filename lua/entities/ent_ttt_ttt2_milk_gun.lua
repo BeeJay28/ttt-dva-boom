@@ -1,11 +1,11 @@
 if engine.ActiveGamemode() ~= "terrortown" then return end
 ENT.Base = "base_anim"
 ENT.Type = "anim"
-ENT.PrintName = "Milk"
-ENT.Author = "mexikoedi"
+ENT.PrintName = "D.Va Mech"
+ENT.Author = "BeeJay28"
 ENT.Contact = "Steam"
-ENT.Instructions = "Is only used for the milk gun."
-ENT.Purpose = "Milk entity for the milk gun."
+ENT.Instructions = "Is only used for the D.Va."
+ENT.Purpose = "D.Va Mech-Entity for the D.Va Bomb."
 ENT.Spawnable = false
 ENT.AdminSpawnable = false
 ENT.AdminOnly = false

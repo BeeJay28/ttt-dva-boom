@@ -1,29 +1,26 @@
 if engine.ActiveGamemode() ~= "terrortown" then return end
 
 -- convars added with default values
-CreateConVar("ttt_milkgun_secondary_sound", "1", {FCVAR_REPLICATED, FCVAR_ARCHIVE, FCVAR_NOTIFY}, "Sound of the taunt secondary attack")
+CreateConVar("ttt_dvabomb_secondary_sound", "1", {FCVAR_REPLICATED, FCVAR_ARCHIVE, FCVAR_NOTIFY}, "Sound of the taunt secondary attack")
 
-CreateConVar("ttt_milkgun_damage", "150", {FCVAR_REPLICATED, FCVAR_ARCHIVE, FCVAR_NOTIFY}, "Damage dealt on impact")
+CreateConVar("ttt_dvabomb_damage", "800", {FCVAR_REPLICATED, FCVAR_ARCHIVE, FCVAR_NOTIFY}, "Damage dealt on explosion")
 
-CreateConVar("ttt_milkgun_randomDamage", "5", {FCVAR_REPLICATED, FCVAR_ARCHIVE, FCVAR_NOTIFY}, "Applied on top of the normal damage (+/-)")
+CreateConVar("ttt_dvabomb_edmMode", "1", {FCVAR_REPLICATED, FCVAR_ARCHIVE, FCVAR_NOTIFY}, "Enable EDM mode")
 
-CreateConVar("ttt_milkgun_edmMode", "1", {FCVAR_REPLICATED, FCVAR_ARCHIVE, FCVAR_NOTIFY}, "Enable EDM mode")
-
-hook.Add("TTTUlxInitCustomCVar", "TTTMilkGunInitRWCVar", function(name)
-    ULib.replicatedWritableCvar("ttt_milkgun_secondary_sound", "rep_ttt_milkgun_secondary_sound", GetConVar("ttt_milkgun_secondary_sound"):GetBool(), true, false, name)
-    ULib.replicatedWritableCvar("ttt_milkgun_damage", "rep_ttt_milkgun_damage", GetConVar("ttt_milkgun_damage"):GetInt(), true, false, name)
-    ULib.replicatedWritableCvar("ttt_milkgun_randomDamage", "rep_ttt_milkgun_randomDamage", GetConVar("ttt_milkgun_randomDamage"):GetInt(), true, false, name)
-    ULib.replicatedWritableCvar("ttt_milkgun_edmMode", "rep_ttt_milkgun_edmMode", GetConVar("ttt_milkgun_edmMode"):GetBool(), true, false, name)
+hook.Add("TTTUlxInitCustomCVar", "TTTDvaBombInitRWCVar", function(name)
+    ULib.replicatedWritableCvar("ttt_dvabomb_secondary_sound", "rep_ttt_dvabomb_secondary_sound", GetConVar("ttt_dvabomb_secondary_sound"):GetBool(), true, false, name)
+    ULib.replicatedWritableCvar("ttt_dvabomb_damage", "rep_ttt_dvabomb_damage", GetConVar("ttt_dvabomb_damage"):GetInt(), true, false, name)
+    ULib.replicatedWritableCvar("ttt_dvabomb_edmMode", "rep_ttt_dvabomb_edmMode", GetConVar("ttt_dvabomb_edmMode"):GetBool(), true, false, name)
 end)
 
 if CLIENT then
     -- Use string or string.format("%.f",<steamid64>) 
     -- addon dev emblem in scoreboard
-    hook.Add("TTT2FinishedLoading", "TTT2RegistermexikoediAddonDev", function()
+    hook.Add("TTT2FinishedLoading", "TTT2RegisterDvaBombAddonDev", function() -- Do we need that?
         -- AddTTT2AddonDev("76561198279816989")
     end)
 
-    hook.Add("TTTUlxModifyAddonSettings", "TTTMilkGunModifySettings", function(name)
+    hook.Add("TTTUlxModifyAddonSettings", "TTTDvaBombModifySettings", function(name)
         local tttrspnl = xlib.makelistlayout{
             w = 415,
             h = 318,
@@ -41,25 +38,16 @@ if CLIENT then
         tttrslst1:SetSpacing(5)
 
         tttrslst1:AddItem(xlib.makecheckbox{
-            label = "ttt_milkgun_secondary_sound (Def. 1)",
-            repconvar = "rep_ttt_milkgun_secondary_sound",
+            label = "ttt_dvabomb_secondary_sound (Def. 1)",
+            repconvar = "rep_ttt_dvabomb_secondary_sound",
             parent = tttrslst1
         })
 
         tttrslst1:AddItem(xlib.makeslider{
-            label = "ttt_milkgun_damage (Def. 150)",
-            repconvar = "rep_ttt_milkgun_damage",
+            label = "ttt_dvabomb_damage (Def. 800)",
+            repconvar = "rep_ttt_dvabomb_damage",
             min = 0,
-            max = 200,
-            decimal = 0,
-            parent = tttrslst1
-        })
-
-        tttrslst1:AddItem(xlib.makeslider{
-            label = "ttt_milkgun_randomDamage (Def. 5)",
-            repconvar = "rep_ttt_milkgun_randomDamage",
-            min = 0,
-            max = 50,
+            max = 2000,
             decimal = 0,
             parent = tttrslst1
         })

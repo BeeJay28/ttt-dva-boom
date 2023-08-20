@@ -7,11 +7,11 @@ if SERVER then
     resource.AddFile("sound/milk_altfire.wav")
 end
 
-SWEP.PrintName = "Milk Gun"
-SWEP.Author = "mexikoedi"
+SWEP.PrintName = "D.Va Bomb"
+SWEP.Author = "BeeJay28"
 SWEP.Contact = "Steam"
 SWEP.Instructions = "You can shoot with primary attack and make a sound with secondary attack."
-SWEP.Purpose = "Give milk bags to everyone."
+SWEP.Purpose = "Blow up everybody who has line-of-sight on the bomb."
 SWEP.Spawnable = false
 SWEP.AdminOnly = false
 SWEP.Icon = "vgui/ttt/weapon_milk_gun"
@@ -25,8 +25,8 @@ SWEP.LimitedStock = true
 
 SWEP.EquipMenuData = {
     type = "item_weapon",
-    name = "Milk Gun",
-    desc = "Shoot and play a sound with primary attack. Use secondary attack to hear a different sound."
+    name = "D.Va Bomb",
+    desc = "Shoot D.Va-Mech Bomb with primary attack. Use secondary attack to taunt."
 }
 
 SWEP.AllowDrop = true
@@ -84,9 +84,9 @@ if SERVER then
     function SWEP:SecondaryAttack()
         self.currentOwner = self:GetOwner()
         -- TODO: Add delay to taunt spamming
-        self:SetNextSecondaryFire(CurTime() + GetConVar("ttt_milkgun_secondary_sound"):GetBool())
+        self:SetNextSecondaryFire(CurTime() + GetConVar("ttt_dvabomb_secondary_sound"):GetBool())
 
-        if GetConVar("ttt_milkgun_secondary_sound"):GetBool() then
+        if GetConVar("ttt_dvabomb_secondary_sound"):GetBool() then
             self.currentOwner:EmitSound(SecondSound)
         end
     end
