@@ -3,8 +3,8 @@ if engine.ActiveGamemode() ~= "terrortown" then return end
 if SERVER then
     AddCSLuaFile()
     resource.AddFile("materials/vgui/ttt/weapon_milk_gun.vmt")
-    resource.AddFile("sound/milk.wav")
-    resource.AddFile("sound/milk_altfire.wav")
+    resource.AddFile("sound/dvaBombNorm.wav")
+    resource.AddFile("sound/messYouUp.wav")
 end
 
 SWEP.PrintName = "D.Va Bomb"
@@ -44,70 +44,67 @@ SWEP.DrawAmmo = true
 SWEP.DrawCrosshair = true
 SWEP.ViewModel = "models/weapons/v_pist_fiveseven.mdl"
 SWEP.WorldModel = "models/weapons/w_pist_fiveseven.mdl"
-local ShootSound = Sound("milk.wav")
-local SecondSound = Sound("milk_altfire.wav")
+local ShootSound = Sound("dvaBombNorm.wav")
+local SecondSound = Sound("messYouUp.wav")
 
 local shootVelocity = 10000
 local mass = 200
+local explosionRadius = 200
+local explosionDmg = GetConVar("ttt_dvabomb_damage")
 
 if SERVER then
     function SWEP:PrimaryAttack()
-        self.currentOwner = self:GetOwner()
+        local ply = self:getOwner()
         self:SetNextPrimaryFire(CurTime()) -- Delete?
         if not self:CanPrimaryAttack() then return end
         self:TakePrimaryAmmo(1)
 
-        self.currentOwner:EmitSound(ShootSound)
+        local bombEnt = self:BuildBomb()
+        if not bombEnt then return end
+        bombEnt:EmitSound(ShootSound)
 
-        local ent = ents.Create("ent_ttt_ttt2_milk_gun")
-        if (not IsValid(ent)) then return end
-        ent:SetModel("models/props_junk/garbage_milkcarton002a.mdl")
-        ent:SetAngles(self.currentOwner:EyeAngles())
-        ent:SetPos(self.currentOwner:EyePos() + (self.currentOwner:GetAimVector() * 16))
-        ent.Owner = self.currentOwner
-        ent:SetOwner(self.currentOwner) -- Prevents all normal phys damage to all entities for whatever reason, but we actually want this to be the case
-        ent:Spawn()
-        ent:Activate()
-        local phys = ent:GetPhysicsObject()
+        local angle = Angle(-10, -5, 0)
+        ply:ViewPunch(angle)
+    end
+
+    function SWEP:BuildBomb()
+        local ply = self:getOwner()
+        local bombEnt = ents.Create("ent_ttt_ttt2_milk_gun")
+        if (not IsValid(bombEnt)) then return false end
+        bombEnt:SetModel("models/props_junk/garbage_milkcarton002a.mdl")
+        bombEnt:SetAngles(ply:EyeAngles())
+        bombEnt:SetPos(ply:EyePos() + (ply:GetAimVector() * 16))
+        bombEnt:SetOwner(ply) -- Prevents all normal phys damage to all entities for whatever reason, but we actually want this to be the case
+        bombEnt:Spawn()
+        bombEnt:Activate()
+        local phys = bombEnt:GetPhysicsObject()
 
         if (not IsValid(phys)) then
-            ent:Remove()
-            return
+            bombEnt:Remove()
+            return false
         end
 
+        phys:Wake()
         phys:SetMass(mass)
-        phys:SetVelocity(self.currentOwner:GetAimVector() * shootVelocity)
-        local angle = Angle(-10, -5, 0)
-        self.currentOwner:ViewPunch(angle)
+        phys:SetVelocity(ply:GetAimVector() * shootVelocity)
+
+        local function explode()
+            local entities = ents.FindInSphere(bombEnt, explosionRadius)
+            for _, ent in pairs(entities) do
+                if ent:IsValid() and ent:IsPlayer() then
+                    ent:TakeDamage(explosionDmg, ply, self)
+                end
+            end
+        end
+
+        timer.Simple(2, explode)
     end
 
     function SWEP:SecondaryAttack()
-        self.currentOwner = self:GetOwner()
-        -- TODO: Add delay to taunt spamming
-        self:SetNextSecondaryFire(CurTime() + GetConVar("ttt_dvabomb_secondary_sound"):GetBool())
+        self:SetNextSecondaryFire(CurTime() + 2)
 
         if GetConVar("ttt_dvabomb_secondary_sound"):GetBool() then
-            self.currentOwner:EmitSound(SecondSound)
-        end
-    end
-
-    function SWEP:Holster()
-        if IsValid(self.currentOwner) then
-            self.currentOwner:StopSound("milk_altfire.wav")
-        end
-
-        return true
-    end
-
-    function SWEP:OnRemove()
-        if IsValid(self.currentOwner) then
-            self.currentOwner:StopSound("milk_altfire.wav")
-        end
-    end
-
-    function SWEP:OnDrop()
-        if IsValid(self.currentOwner) then
-            self.currentOwner:StopSound("milk_altfire.wav")
+            self:getOwner():EmitSound(SecondSound)
         end
     end
 end

@@ -52,6 +52,12 @@ if CLIENT then
             parent = tttrslst1
         })
 
+        tttrslst1:AddItem(xlib.makecheckbox{
+            label = "ttt_dvabomb_edmMode (Def. 1)",
+            repconvar = "rep_ttt_dvabomb_edmMode",
+            parent = tttrslst1
+        })
+
         -- add to ULX
         xgui.hookEvent("onProcessModules", nil, tttrspnl.processModules)
         xgui.addSubModule("Milk Gun", tttrspnl, nil, name)

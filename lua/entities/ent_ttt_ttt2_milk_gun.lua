@@ -18,13 +18,6 @@ if SERVER then
         self:PhysicsInit(SOLID_VPHYSICS)
         self:SetMoveType(MOVETYPE_VPHYSICS)
         self:SetSolid(SOLID_VPHYSICS)
-        local phys = self:GetPhysicsObject()
-
-        if phys:IsValid() then -- Why?
-            phys:Wake()
-        end
-
-        phys:SetMass(500)
         self:SetUseType(SIMPLE_USE)
     end
 end
