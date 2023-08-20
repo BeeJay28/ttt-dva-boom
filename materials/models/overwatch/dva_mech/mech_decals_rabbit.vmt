@@ -1,0 +1,12 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models/Overwatch/DVA_mech/rabbit_mech_decals"
+
+	"$phongexponenttexture" "models/Overwatch/DVA/dva_body_s"
+	"$phongalbedotint" "0"
+	"$phong" "1"
+	"$phongboost"	".7"
+	"$phongfresnelranges"	"[5 3 7]"
+
+	"$translucent" 1
+}

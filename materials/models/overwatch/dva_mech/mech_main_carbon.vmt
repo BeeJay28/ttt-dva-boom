@@ -1,0 +1,19 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models/Overwatch/DVA_mech/robutt2_carbon_diff"
+	"$bumpmap" "models/Overwatch/DVA_mech/robutt2_carbon_norm"
+	"$basealphaenvmapmask" "1"
+	"$envmap" "models/Overwatch/DVA_mech/softsilver"
+	"$envmaptint" "[1 1 1.2]"
+	"$envmapfresnel" ".2"
+	"$phongexponenttexture" "models/Overwatch/DVA_mech/robutt2_spec"
+	"$phongalbedotint" "1"
+	"$phong" "1"
+	"$phongboost"	".25"
+	"$phongexponent"	"10"
+	"$phongfresnelranges"	"[5 3 7]"
+
+	"$rimlight"				"1"
+	"$rimlightexponent"		"5"
+	"$rimlightboost"		"1"
+}
