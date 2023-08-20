@@ -34,37 +34,30 @@ SWEP.IsSilent = false
 SWEP.NoSights = false
 SWEP.AutoSpawnable = false
 SWEP.HoldType = "pistol"
-SWEP.Primary.ClipSize = GetConVar("ttt_milkgun_clipSize"):GetInt()
-SWEP.Primary.DefaultClip = GetConVar("ttt_milkgun_ammo"):GetInt()
-SWEP.Primary.Automatic = GetConVar("ttt_milkgun_automaticFire"):GetBool()
-SWEP.Primary.RPS = GetConVar("ttt_milkgun_rps"):GetFloat()
+SWEP.Primary.ClipSize = 1
+SWEP.Primary.DefaultClip = 1
+SWEP.Primary.Automatic = false
+SWEP.Primary.RPS = 1
 SWEP.Primary.Ammo = "none"
 SWEP.Weight = 7
 SWEP.DrawAmmo = true
-SWEP.DrawCrosshair = false
+SWEP.DrawCrosshair = true
 SWEP.ViewModel = "models/weapons/v_pist_fiveseven.mdl"
 SWEP.WorldModel = "models/weapons/w_pist_fiveseven.mdl"
 local ShootSound = Sound("milk.wav")
 local SecondSound = Sound("milk_altfire.wav")
 
-function SWEP:Initialize()
-    if CLIENT then return end
-    self.Primary.ClipSize = GetConVar("ttt_milkgun_clipSize"):GetInt()
-    self.Primary.DefaultClip = GetConVar("ttt_milkgun_ammo"):GetInt()
-    self.Primary.Automatic = GetConVar("ttt_milkgun_automaticFire"):GetBool()
-    self.Primary.RPS = GetConVar("ttt_milkgun_rps"):GetFloat()
-end
+local shootVelocity = 10000
+local mass = 200
 
 if SERVER then
     function SWEP:PrimaryAttack()
         self.currentOwner = self:GetOwner()
-        self:SetNextPrimaryFire(CurTime() + 1 / self.Primary.RPS)
+        self:SetNextPrimaryFire(CurTime()) -- Delete?
         if not self:CanPrimaryAttack() then return end
         self:TakePrimaryAmmo(1)
 
-        if GetConVar("ttt_milkgun_primary_sound"):GetBool() then
-            self.currentOwner:EmitSound(ShootSound)
-        end
+        self.currentOwner:EmitSound(ShootSound)
 
         local ent = ents.Create("ent_ttt_ttt2_milk_gun")
         if (not IsValid(ent)) then return end
@@ -73,28 +66,25 @@ if SERVER then
         ent:SetPos(self.currentOwner:EyePos() + (self.currentOwner:GetAimVector() * 16))
         ent.Owner = self.currentOwner
         ent:SetOwner(self.currentOwner) -- Prevents all normal phys damage to all entities for whatever reason, but we actually want this to be the case
-        ent:SetPhysicsAttacker(self.currentOwner)
-        ent.fingerprints = self.fingerprints
         ent:Spawn()
         ent:Activate()
-        util.SpriteTrail(ent, 0, Color(255, 255, 255), false, 16, 1, 6, 1 / (15 + 1) * 0.5, "trails/laser.vmt")
         local phys = ent:GetPhysicsObject()
 
         if (not IsValid(phys)) then
             ent:Remove()
-
             return
         end
 
-        phys:SetMass(2)
-        phys:SetVelocity(self.currentOwner:GetAimVector() * 100000)
-        local anglo = Angle(-10, -5, 0)
-        self.currentOwner:ViewPunch(anglo)
+        phys:SetMass(mass)
+        phys:SetVelocity(self.currentOwner:GetAimVector() * shootVelocity)
+        local angle = Angle(-10, -5, 0)
+        self.currentOwner:ViewPunch(angle)
     end
 
     function SWEP:SecondaryAttack()
         self.currentOwner = self:GetOwner()
-        self:SetNextSecondaryFire(CurTime() + 5)
+        -- TODO: Add delay to taunt spamming
+        self:SetNextSecondaryFire(CurTime() + GetConVar("ttt_milkgun_secondary_sound"):GetBool())
 
         if GetConVar("ttt_milkgun_secondary_sound"):GetBool() then
             self.currentOwner:EmitSound(SecondSound)
