@@ -1,0 +1,15 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models/overwatch/dva/ultradva/stuff/mech_carbon"
+	"$bumpmap" "models/overwatch/dva/ultradva/stuff/mech_n"
+		$ambientocclusion 1
+    $halflambert 1
+	"$nodecal" "1"
+	"$model" "1"
+
+$phong 1
+$phongboost 1
+$phongexponent 3
+$phongtint "[1 .85 .85]"
+$phongfresnelranges "[.3 .85 30]"
+}

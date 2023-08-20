@@ -10,15 +10,21 @@ ENT.Spawnable = false
 ENT.AdminSpawnable = false
 ENT.AdminOnly = false
 
+local primShootSound = Sound("dvaBombNorm.wav")
+
 if SERVER then
     AddCSLuaFile()
 
     function ENT:Initialize()
-        self:SetModel("models/props_junk/garbage_milkcarton002a.mdl")
+        self:SetModel("models/Characters/overwatch/dva/mech.mdl")
         self:PhysicsInit(SOLID_VPHYSICS)
         self:SetMoveType(MOVETYPE_VPHYSICS)
         self:SetSolid(SOLID_VPHYSICS)
         self:SetUseType(SIMPLE_USE)
+        self:EmitSound(primShootSound, 350, 100, 1)
+
+        -- TODO: Weld angle so that it stays upright
+        local constraint = constraint.Keepupright(self, Angle(0, 0, 0), 0, 999999)
     end
 end
 

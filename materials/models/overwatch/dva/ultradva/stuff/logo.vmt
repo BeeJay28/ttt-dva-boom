@@ -1,0 +1,5 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models/overwatch/dva/ultradva/stuff/logo"
+	$translucent 1
+}

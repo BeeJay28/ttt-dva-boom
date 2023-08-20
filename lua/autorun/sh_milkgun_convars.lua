@@ -14,12 +14,6 @@ hook.Add("TTTUlxInitCustomCVar", "TTTDvaBombInitRWCVar", function(name)
 end)
 
 if CLIENT then
-    -- Use string or string.format("%.f",<steamid64>) 
-    -- addon dev emblem in scoreboard
-    hook.Add("TTT2FinishedLoading", "TTT2RegisterDvaBombAddonDev", function() -- Do we need that?
-        -- AddTTT2AddonDev("76561198279816989")
-    end)
-
     hook.Add("TTTUlxModifyAddonSettings", "TTTDvaBombModifySettings", function(name)
         local tttrspnl = xlib.makelistlayout{
             w = 415,
@@ -60,6 +54,6 @@ if CLIENT then
 
         -- add to ULX
         xgui.hookEvent("onProcessModules", nil, tttrspnl.processModules)
-        xgui.addSubModule("Milk Gun", tttrspnl, nil, name)
+        xgui.addSubModule("D.Va Bomb", tttrspnl, nil, name)
     end)
 end

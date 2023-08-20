@@ -1,0 +1,7 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models/overwatch/dva/ultradva/stuff/glass"
+	"$bumpmap" "models/overwatch/dva/ultradva/stuff/glass_n"
+	"$translucent" 1
+	$nocull 1
+}
