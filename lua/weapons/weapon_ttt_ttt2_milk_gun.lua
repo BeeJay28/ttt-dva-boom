@@ -134,18 +134,26 @@ function SWEP:BuildBomb(ply)
 
     local function explode()
 
-        -- Find ANYTHING (Actually only entities) inside the sphere of the explosion radius
+        -- Find ANYTHING (Actually only entitties) inside the sphere of the explosion radius
         local entityTable = ents.FindInSphere(bombEnt:GetPos(), explosionRadius)
         for _, sphereEnt in pairs(entityTable) do
             if sphereEnt:IsValid() and sphereEnt:IsPlayer() then
 
                 -- Trace for head, shoulders, knees and toes... without the shoulders and toes
-                local traceResultHead = util.TraceLine(
+                local traceRes = util.TraceLine(
                     {
                         -- This is 100% the spine [See print(bombEnt:GetBoneName(1))]
                         start = bombEnt:GetBonePosition(1),
                         -- This should return the head position [See print(sphereEnt:GetBoneName(6))]
-                        endpos = sphereEnt:GetBonePosition(6), -- THIS IS BROKEN... ISH. IF USING GETPOSITION IT JUST DOESNT WANT TO TRACE. FIX BEFORE RELEASE!!!111ELF
+
+                        -- TODO: Maybe find the center of the bounding box (NOT HITBOX!)
+                        -- so we can trace there.
+                        -- General Idea: Extend the trace for about half the boundingbox size so we
+                        -- 100% hit the Entities HITBOX (Not BB)
+
+                        -- Not saying the Idea with the sphere is stupid. but it is still buggy
+                        endpos = sphereEnt:EyePos(),
+                        --endpos = sphereEnt:GetBonePosition(6), -- THIS IS BROKEN... ISH... IF USING GETPOSITION IT JUST DOESNT WANT TO TRACE. SOMETIMES- FIX BEFORE RELEASE!!!111ELF 
                         filter = {},
                         mask = MASK_PLAYERSOLID,
                         collision = COLLISION_GROUP_NONE,
@@ -153,28 +161,41 @@ function SWEP:BuildBomb(ply)
                         table = nil
                     }
                 )
+                -- In case all strings fail. We say fuck the people hiding directly
+                -- behind paperthin walls and just blow them up with the wall.
+                local plyTable = ents.FindInSphere(traceRes.HitPos, 15)
+                debugoverlay.Sphere( traceRes.HitPos, 15, 10, Color( 255, 0, 0 ), true )
 
-                -- nobody's already tracer
-                if not traceResultHead then return end
-                print(traceResultHead.Entity)
+                -- This technically is stupid. Needs testing for if only one ply is found per sphere-trace, since it is veeery small
+                for _, hitPly in pairs(plyTable) do
+                    if hitPly == sphereEnt then
+                        local forceVector = self:GetForceVector(sphereEnt, bombEnt)
 
-                if traceResultHead.Entity == sphereEnt then
-                    local forceVector = self:GetForceVector(sphereEnt, bombEnt)
-
-                    sphereEnt:SetVelocity(forceVector)
-                    -- Set Damage
-                    local dmgInfo = DamageInfo()
-                    local explosionDmg = GetConVar("ttt_dvabomb_damage"):GetInt()
-                    dmgInfo:SetAttacker(ply)
-                    dmgInfo:SetInflictor(self)
-                    dmgInfo:SetDamage(explosionDmg)
-                    dmgInfo:SetDamageType(DMG_BLAST)
-                    sphereEnt:TakeDamageInfo(dmgInfo)
-
-                    -- sphereEnt:TakeDamage(explosionDmg, ply, self)
-                    -- TODO: Try this code for boundingBox -- Update: It doesnt work... -James
-                    -- TODO: Change bounding box to reflect custom model size
+                        sphereEnt:SetVelocity(forceVector)
+                        local dmgInfo = DamageInfo()
+                        local explosionDmg = GetConVar("ttt_dvabomb_damage"):GetInt()
+                        dmgInfo:SetAttacker(ply)
+                        dmgInfo:SetInflictor(self)
+                        dmgInfo:SetDamage(explosionDmg)
+                        dmgInfo:SetDamageType(DMG_BLAST)
+                        sphereEnt:TakeDamageInfo(dmgInfo)
+                    end
                 end
+ 
+                -- BUG: If an entities bounding box is intersecting the mech-bb, all traces are drawn towards that singular entity-bb,
+                -- even if other valid targets exist in range
+                -- BUG: When doing TraceEntity, the mech-bb is used as super-thick traceline, which leads to it often colliding with
+                -- intermediary targets before hitting the actual one 
+
+
+                debugoverlay.Line(
+                    traceRes.StartPos,
+                    traceRes.HitPos,
+                    20,
+                    Color( 0, 255, 0 ), 
+                    true
+                )
+                
             end
         end
         bombEnt:Remove()
@@ -201,8 +222,8 @@ function SWEP:GetForceVector(hitPly, bombEnt)
     local posVec = self:GetPositiveVector(forceVec)
     print(posVec)
     -- for jumpy fun
-    posVec.z = 400
-    forceVec = (posVec * forceVec)/200
+    posVec.z = 600
+    forceVec = (posVec * forceVec)/150
     print(forceVec)
     return forceVec
 end

@@ -27,7 +27,6 @@ if SERVER then
         self:SetMoveType(MOVETYPE_VPHYSICS)
         self:SetSolid(SOLID_VPHYSICS)
         self:SetUseType(SIMPLE_USE)
-        self:SetCollisionBounds(self:GetModelBounds())
         self:EmitSound(primShootSound, 350, 100, 1)
 
         -- Fix the mech falling over
