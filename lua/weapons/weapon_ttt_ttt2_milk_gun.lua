@@ -137,9 +137,11 @@ function SWEP:BuildBomb(ply)
         -- Find ANYTHING (Actually only entitties) inside the sphere of the explosion radius
         local entityTable = ents.FindInSphere(bombEnt:GetPos(), explosionRadius)
         for _, sphereEnt in pairs(entityTable) do
-            if sphereEnt:IsValid() and sphereEnt:IsPlayer() then
-
-                -- Trace for head, shoulders, knees and toes... without the shoulders and toes
+            if sphereEnt:IsValid() 
+                and sphereEnt:IsPlayer()
+                -- Because spectators are apparently players too
+                and sphereEnt:GetObserverMode() == OBS_MODE_NONE then
+                -- Trace for head, shoulders, knees and toes... without the shoulders and toes 
                 local traceRes = util.TraceLine(
                     {
                         -- This is 100% the spine [See print(bombEnt:GetBoneName(1))]
@@ -154,7 +156,7 @@ function SWEP:BuildBomb(ply)
                         -- Not saying the Idea with the sphere is stupid. but it is still buggy
                         endpos = sphereEnt:EyePos(),
                         --endpos = sphereEnt:GetBonePosition(6), -- THIS IS BROKEN... ISH... IF USING GETPOSITION IT JUST DOESNT WANT TO TRACE. SOMETIMES- FIX BEFORE RELEASE!!!111ELF 
-                        filter = {},
+                        filter = sphereEnt:GetObserverMode() == OBS_MODE_NONE,
                         mask = MASK_PLAYERSOLID,
                         collision = COLLISION_GROUP_NONE,
                         ignoreworld = false,
@@ -163,8 +165,9 @@ function SWEP:BuildBomb(ply)
                 )
                 -- In case all strings fail. We say fuck the people hiding directly
                 -- behind paperthin walls and just blow them up with the wall.
-                local plyTable = ents.FindInSphere(traceRes.HitPos, 15)
-                debugoverlay.Sphere( traceRes.HitPos, 15, 10, Color( 255, 0, 0 ), true )
+                local explosionWallPenetration = 20
+                local plyTable = ents.FindInSphere(traceRes.HitPos, explosionWallPenetration)
+                --debugoverlay.Sphere( traceRes.HitPos, explosionWallPenetration, 10, Color( 255, 0, 0 ), true )
 
                 -- This technically is stupid. Needs testing for if only one ply is found per sphere-trace, since it is veeery small
                 for _, hitPly in pairs(plyTable) do
@@ -181,12 +184,24 @@ function SWEP:BuildBomb(ply)
                         sphereEnt:TakeDamageInfo(dmgInfo)
                     end
                 end
+
+                -- local forceVector = self:GetForceVector(sphereEnt, bombEnt)
+
+                -- sphereEnt:SetVelocity(forceVector)
+                -- local dmgInfo = DamageInfo()
+                -- local explosionDmg = GetConVar("ttt_dvabomb_damage"):GetInt()
+                -- dmgInfo:SetAttacker(ply)
+                -- dmgInfo:SetInflictor(self)
+                -- dmgInfo:SetDamage(explosionDmg)
+                -- dmgInfo:SetDamageType(DMG_BLAST)
+                -- sphereEnt:TakeDamageInfo(dmgInfo)
  
                 -- BUG: If an entities bounding box is intersecting the mech-bb, all traces are drawn towards that singular entity-bb,
                 -- even if other valid targets exist in range
                 -- BUG: When doing TraceEntity, the mech-bb is used as super-thick traceline, which leads to it often colliding with
                 -- intermediary targets before hitting the actual one 
 
+                print(sphereEnt)
 
                 debugoverlay.Line(
                     traceRes.StartPos,
@@ -216,15 +231,15 @@ end
 function SWEP:GetForceVector(hitPly, bombEnt)
     -- On explosion, yeet whoever dares to get too close
     local localVecFromBombToRadius = (hitPly:GetPos() - bombEnt:GetPos()):GetNormalized() * explosionRadius
-    print(localVecFromBombToRadius)
+--    print(localVecFromBombToRadius)
     local forceVec = (bombEnt:GetPos() + localVecFromBombToRadius) - hitPly:GetPos()
-    print(forceVec)
+--    print(forceVec)
     local posVec = self:GetPositiveVector(forceVec)
-    print(posVec)
+--    print(posVec)
     -- for jumpy fun
     posVec.z = 600
     forceVec = (posVec * forceVec)/150
-    print(forceVec)
+ --   print(forceVec)
     return forceVec
 end
 
