@@ -49,10 +49,10 @@ if CLIENT then
                     local dlight = DynamicLight( self:EntIndex() )
                     if ( dlight ) then
                         dlight.pos = self:GetBonePosition(1)
-                        dlight.r = 0
-                        dlight.g = 255
-                        dlight.b = 255
-                        dlight.brightness = 5
+                        dlight.r = 8
+                        dlight.g = 64
+                        dlight.b = 58
+                        dlight.brightness = 2
                         dlight.decay = 1000
                         dlight.size = 800
                         dlight.dietime = CurTime() + 1

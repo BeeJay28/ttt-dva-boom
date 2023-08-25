@@ -9,7 +9,6 @@ if SERVER then
     resource.AddFile("sound/nerfThis.wav")
     resource.AddFile("models/Characters/overwatch/dva/mech.mdl")
     resource.AddFile("models/Characters/overwatch/dva/gun.mdl")
-    resource.AddFile("models/Characters/overwatch/dva/dva.mdl")
 end
 
 -- Setting the parameters for the Item
@@ -41,8 +40,8 @@ SWEP.IsSilent = false
 SWEP.NoSights = false
 SWEP.AutoSpawnable = false
 SWEP.HoldType = "pistol"
-SWEP.Primary.ClipSize = 150
-SWEP.Primary.DefaultClip = 150
+SWEP.Primary.ClipSize = 10
+SWEP.Primary.DefaultClip = 10
 SWEP.Primary.Automatic = false
 SWEP.Primary.Ammo = "none"
 SWEP.Weight = 7
@@ -53,7 +52,7 @@ SWEP.WorldModel = "models/weapons/w_pist_fiveseven.mdl"
 
 --- Initialize the variables.
 
--- This sets the soundeffects. Ripped directly from Overwatch™️
+-- This sets the soundeffects. Ripped directly from Overwatch
 local primVoiceline = Sound("nerfThis.wav")
 local secondVoiceline = Sound("messYouUp.wav")
 
@@ -100,16 +99,11 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:BuildBomb(ply)
-    -- How to build a bomb, a step-by-mine guide
-
     -- Step 2: Spawn the bomb
-    local bombEnt = ents.Create("ent_ttt_ttt2_milk_gun")
+    local bombEnt = ents.Create("ent_ttt_ttt2_dva_bomb")
 
-    -- Step 3: Is the bomb a valid member of society
     if not IsValid(bombEnt) then return false end
 
-    -- Step 4: Profit (actually no, this is under GPL license)
-    
     -- Yaw and Roll of player, Pitch = 0
     local eyeAngles = ply:EyeAngles()
     bombEnt:SetAngles(Angle(0, eyeAngles[2], eyeAngles[3]))
@@ -139,41 +133,21 @@ function SWEP:BuildBomb(ply)
         for _, sphereEnt in pairs(entityTable) do
             if sphereEnt:IsValid() 
                 and sphereEnt:IsPlayer()
-                -- Because spectators are apparently players too
-                and sphereEnt:GetObserverMode() == OBS_MODE_NONE then
-                -- Trace for head, shoulders, knees and toes... without the shoulders and toes 
-                local traceRes = util.TraceLine(
-                    {
-                        -- This is 100% the spine [See print(bombEnt:GetBoneName(1))]
-                        start = bombEnt:GetBonePosition(1),
-                        -- This should return the head position [See print(sphereEnt:GetBoneName(6))]
+                -- Because spectators are apparently entities too
+                and sphereEnt:GetObserverMode() == OBS_MODE_NONE
+            then
+                -- Trace for head, shoulders, knees and toes... without the shoulders, knees and toes
+                local traces = {}
+                sphereEnt:LagCompensation(true)
+                table.insert(traces, self:CalcTrace(bombEnt:GetBonePosition(1), sphereEnt:GetBonePosition(6)))
+                table.insert(traces, self:CalcTrace(bombEnt:GetBonePosition(1), sphereEnt:EyePos()))
+                table.insert(traces, self:CalcTrace(bombEnt:GetPos(), sphereEnt:GetBonePosition(6)))
+                table.insert(traces, self:CalcTrace(bombEnt:GetPos(), sphereEnt:EyePos()))
+                sphereEnt:LagCompensation(false)
 
-                        -- TODO: Maybe find the center of the bounding box (NOT HITBOX!)
-                        -- so we can trace there.
-                        -- General Idea: Extend the trace for about half the boundingbox size so we
-                        -- 100% hit the Entities HITBOX (Not BB)
-
-                        -- Not saying the Idea with the sphere is stupid. but it is still buggy
-                        endpos = sphereEnt:EyePos(),
-                        --endpos = sphereEnt:GetBonePosition(6), -- THIS IS BROKEN... ISH... IF USING GETPOSITION IT JUST DOESNT WANT TO TRACE. SOMETIMES- FIX BEFORE RELEASE!!!111ELF 
-                        filter = sphereEnt:GetObserverMode() == OBS_MODE_NONE,
-                        mask = MASK_PLAYERSOLID,
-                        collision = COLLISION_GROUP_NONE,
-                        ignoreworld = false,
-                        table = nil
-                    }
-                )
-                -- In case all strings fail. We say fuck the people hiding directly
-                -- behind paperthin walls and just blow them up with the wall.
-                local explosionWallPenetration = 20
-                local plyTable = ents.FindInSphere(traceRes.HitPos, explosionWallPenetration)
-                --debugoverlay.Sphere( traceRes.HitPos, explosionWallPenetration, 10, Color( 255, 0, 0 ), true )
-
-                -- This technically is stupid. Needs testing for if only one ply is found per sphere-trace, since it is veeery small
-                for _, hitPly in pairs(plyTable) do
-                    if hitPly == sphereEnt then
+                for i, trace in ipairs(traces) do
+                    if trace.Entity == sphereEnt then
                         local forceVector = self:GetForceVector(sphereEnt, bombEnt)
-
                         sphereEnt:SetVelocity(forceVector)
                         local dmgInfo = DamageInfo()
                         local explosionDmg = GetConVar("ttt_dvabomb_damage"):GetInt()
@@ -182,35 +156,10 @@ function SWEP:BuildBomb(ply)
                         dmgInfo:SetDamage(explosionDmg)
                         dmgInfo:SetDamageType(DMG_BLAST)
                         sphereEnt:TakeDamageInfo(dmgInfo)
+                        break
                     end
                 end
 
-                -- local forceVector = self:GetForceVector(sphereEnt, bombEnt)
-
-                -- sphereEnt:SetVelocity(forceVector)
-                -- local dmgInfo = DamageInfo()
-                -- local explosionDmg = GetConVar("ttt_dvabomb_damage"):GetInt()
-                -- dmgInfo:SetAttacker(ply)
-                -- dmgInfo:SetInflictor(self)
-                -- dmgInfo:SetDamage(explosionDmg)
-                -- dmgInfo:SetDamageType(DMG_BLAST)
-                -- sphereEnt:TakeDamageInfo(dmgInfo)
- 
-                -- BUG: If an entities bounding box is intersecting the mech-bb, all traces are drawn towards that singular entity-bb,
-                -- even if other valid targets exist in range
-                -- BUG: When doing TraceEntity, the mech-bb is used as super-thick traceline, which leads to it often colliding with
-                -- intermediary targets before hitting the actual one 
-
-                print(sphereEnt)
-
-                debugoverlay.Line(
-                    traceRes.StartPos,
-                    traceRes.HitPos,
-                    20,
-                    Color( 0, 255, 0 ), 
-                    true
-                )
-                
             end
         end
         bombEnt:Remove()
@@ -231,16 +180,28 @@ end
 function SWEP:GetForceVector(hitPly, bombEnt)
     -- On explosion, yeet whoever dares to get too close
     local localVecFromBombToRadius = (hitPly:GetPos() - bombEnt:GetPos()):GetNormalized() * explosionRadius
---    print(localVecFromBombToRadius)
     local forceVec = (bombEnt:GetPos() + localVecFromBombToRadius) - hitPly:GetPos()
---    print(forceVec)
     local posVec = self:GetPositiveVector(forceVec)
---    print(posVec)
     -- for jumpy fun
     posVec.z = 600
     forceVec = (posVec * forceVec)/150
- --   print(forceVec)
     return forceVec
+end
+
+function SWEP:CalcTrace(startVector, stopVector)
+    local trace = util.TraceLine(
+        {
+            start = startVector,
+            endpos = stopVector,
+            filter = {},
+            mask = MASK_PLAYERSOLID,
+            collision = COLLISION_GROUP_NONE,
+            ignoreworld = false,
+            output = nil
+        }
+    )
+
+    return trace
 end
 
 -- Get math.abs version of vector

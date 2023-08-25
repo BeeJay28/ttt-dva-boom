@@ -5,12 +5,9 @@ CreateConVar("ttt_dvabomb_secondary_sound", "1", {FCVAR_REPLICATED, FCVAR_ARCHIV
 
 CreateConVar("ttt_dvabomb_damage", "800", {FCVAR_REPLICATED, FCVAR_ARCHIVE, FCVAR_NOTIFY}, "Damage dealt on explosion")
 
-CreateConVar("ttt_dvabomb_edmMode", "1", {FCVAR_REPLICATED, FCVAR_ARCHIVE, FCVAR_NOTIFY}, "Enable EDM mode")
-
 hook.Add("TTTUlxInitCustomCVar", "TTTDvaBombInitRWCVar", function(name)
     ULib.replicatedWritableCvar("ttt_dvabomb_secondary_sound", "rep_ttt_dvabomb_secondary_sound", GetConVar("ttt_dvabomb_secondary_sound"):GetBool(), true, false, name)
     ULib.replicatedWritableCvar("ttt_dvabomb_damage", "rep_ttt_dvabomb_damage", GetConVar("ttt_dvabomb_damage"):GetInt(), true, false, name)
-    ULib.replicatedWritableCvar("ttt_dvabomb_edmMode", "rep_ttt_dvabomb_edmMode", GetConVar("ttt_dvabomb_edmMode"):GetBool(), true, false, name)
 end)
 
 if CLIENT then
@@ -43,12 +40,6 @@ if CLIENT then
             min = 0,
             max = 2000,
             decimal = 0,
-            parent = tttrslst1
-        })
-
-        tttrslst1:AddItem(xlib.makecheckbox{
-            label = "ttt_dvabomb_edmMode (Def. 1)",
-            repconvar = "rep_ttt_dvabomb_edmMode",
             parent = tttrslst1
         })
 
