@@ -12,10 +12,16 @@ ENT.AdminOnly = false
 
 local primShootSound = Sound("dvaBombNorm.wav")
 
+
+
+
+
+
 if SERVER then
     AddCSLuaFile()
 
     function ENT:Initialize()
+        
         self:SetModel("models/Characters/overwatch/dva/mech.mdl")
         self:PhysicsInit(SOLID_VPHYSICS)
         self:SetMoveType(MOVETYPE_VPHYSICS)
@@ -23,13 +29,35 @@ if SERVER then
         self:SetUseType(SIMPLE_USE)
         self:EmitSound(primShootSound, 350, 100, 1)
 
-        -- TODO: Weld angle so that it stays upright
-        local constraint = constraint.Keepupright(self, Angle(0, 0, 0), 0, 999999)
+        -- Fix the mech falling over
+        local phys = self:GetPhysicsObject()
+        phys:SetDamping( 0, 1000 )
+
+
+
+
+
+
     end
 end
 
 if CLIENT then
     function ENT:Draw()
         self:DrawModel()
+
+                -- Jamses cooles Lichtscript
+                    local dlight = DynamicLight( self:EntIndex() )
+                    if ( dlight ) then
+                        dlight.pos = self:GetBonePosition(1)
+                        dlight.r = 8
+                        dlight.g = 64
+                        dlight.b = 58
+                        dlight.brightness = 2
+                        dlight.decay = 1000
+                        dlight.size = 800
+                        dlight.dietime = CurTime() + 1
+                    end
+
     end
 end
+
