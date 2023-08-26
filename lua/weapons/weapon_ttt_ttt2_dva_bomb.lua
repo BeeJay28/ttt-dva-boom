@@ -3,6 +3,41 @@ if engine.ActiveGamemode() ~= "terrortown" then return end
 -- Resource handeling
 if SERVER then
     AddCSLuaFile()
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffglass.vmt")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffglass.vtf")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stufflogo.vmt")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stufflogo.vtf")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmech.vmt")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmech.vtf")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmecharms.vmt")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmecharms.vtf")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmecharms_blueberry.vmt")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmecharms_blueberry.vtf")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmecharms_carbon.vmt")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmecharms_carbon.vtf")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmecharms_lime.vmt")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmecharms_lime.vtf")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmecharms_n.vtf")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmecharms_orange.vmt")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmecharms_orange.vtf")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmecharms_watermelon.vmt")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmecharms_watermelon.vtf")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmecharms_whiterabbit.vmt")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmecharms_whiterabbit.vtf")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmech_blueberry.vmt")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffglass_n.vtf")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmech_blueberry.vtf")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmech_carbon.vmt")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmech_carbon.vtf")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmech_lime.vmt")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmech_lime.vtf")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmech_n.vtf")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmech_orange.vmt")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmech_orange.vtf")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmech_watermelon.vmt")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmech_watermelon.vtf")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmech_whiterabbit.vmt")
+    resource.AddFile("materials/models/overwatch/dva/ultradva/stuffmech_whiterabbit.vtf")
     resource.AddFile("materials/vgui/ttt/weapon_dva_mech.vmt")
     resource.AddFile("sound/dvaBombNorm.wav")
     resource.AddFile("sound/messYouUp.wav")
@@ -40,8 +75,8 @@ SWEP.IsSilent = false
 SWEP.NoSights = false
 SWEP.AutoSpawnable = false
 SWEP.HoldType = "pistol"
-SWEP.Primary.ClipSize = 100 -- TODO:
-SWEP.Primary.DefaultClip = 100
+SWEP.Primary.ClipSize = 1
+SWEP.Primary.DefaultClip = 1
 SWEP.Primary.Automatic = false
 SWEP.Primary.Ammo = "none"
 SWEP.Weight = 7
@@ -86,10 +121,10 @@ function SWEP:PrimaryAttack()
     if SERVER then
         local success = self:ExplodeBomb(ply)
         if not success then return end
+        ply:EmitSound(primVoiceline, 350, 100, 1)
+        local angle = Angle(-10, -5, 0)
+        ply:ViewPunch(angle)
     end
-    ply:EmitSound(primVoiceline, 350, 100, 1)
-    local angle = Angle(-10, -5, 0)
-    ply:ViewPunch(angle)
 end
 
 function SWEP:ExplodeBomb(ply)
@@ -164,8 +199,10 @@ end
 function SWEP:SecondaryAttack()
     if not GetConVar("ttt_dvabomb_secondary_sound"):GetBool() then return end
     -- More James inhibition code
-    self:SetNextSecondaryFire(CurTime() + 2)
-    self:GetOwner():EmitSound(secondVoiceline, 75, 100, 0.4)
+    if SERVER then
+        self:SetNextSecondaryFire(CurTime() + 2)
+        self:GetOwner():EmitSound(secondVoiceline, 75, 100, 0.4)
+    end
 end
 
 function SWEP:GetForceVector(hitPly, bombEnt, explosionRadius)
