@@ -15,15 +15,15 @@ end
 SWEP.PrintName = "D.Va Bomb"
 SWEP.Author = "BeeJay28 & James"
 SWEP.Contact = "Steam"
-SWEP.Instructions = "You can shoot with primary attack and make a sound with secondary attack."
-SWEP.Purpose = "Blow up everybody who has line-of-sight on the bomb."
+SWEP.Instructions = "You can shoot the mech-bomb with primary attack and taunt with secondary attack."
+SWEP.Purpose = "Blow up everybody with a throwable D.Va Ult bomb. Radius and damage are configurable."
 SWEP.Spawnable = false
 SWEP.AdminOnly = false
 SWEP.Icon = "vgui/ttt/weapon_dva_mech"
 SWEP.Base = "weapon_tttbase"
 SWEP.Kind = WEAPON_EQUIP1
 
-SWEP.CanBuy = {ROLE_TRAITOR}
+SWEP.CanBuy = {ROLE_TRAITOR, ROLE_JACKAL}
 
 SWEP.InLoadoutFor = nil
 SWEP.LimitedStock = true
@@ -40,8 +40,8 @@ SWEP.IsSilent = false
 SWEP.NoSights = false
 SWEP.AutoSpawnable = false
 SWEP.HoldType = "pistol"
-SWEP.Primary.ClipSize = 10
-SWEP.Primary.DefaultClip = 10
+SWEP.Primary.ClipSize = 100 -- TODO:
+SWEP.Primary.DefaultClip = 100
 SWEP.Primary.Automatic = false
 SWEP.Primary.Ammo = "none"
 SWEP.Weight = 7
@@ -68,11 +68,6 @@ local shootVelocity = 800
 -- drag races... drag queens... factor them in!
 local mass = 0
 
--- Kaboom size. In general. 1000 is about the
--- size of the lighthouse in that minecraft map...
--- with the lighthouse (editor's note, it's minecraft_b5) -- thanks editor
-local explosionRadius = 850
-
 -- Anti James Spam protection
 local primaryCooldown = 1 -- in sec
 
@@ -89,17 +84,16 @@ function SWEP:PrimaryAttack()
     self:TakePrimaryAmmo(1)
 
     if SERVER then
-        -- Create mech entity, including model and explosive code
-        local bombEnt = self:BuildBomb(ply)
-        if not bombEnt then return end
+        local success = self:ExplodeBomb(ply)
+        if not success then return end
     end
     ply:EmitSound(primVoiceline, 350, 100, 1)
     local angle = Angle(-10, -5, 0)
     ply:ViewPunch(angle)
 end
 
-function SWEP:BuildBomb(ply)
-    -- Step 2: Spawn the bomb
+function SWEP:ExplodeBomb(ply)
+    -- Create mech entity, including model and explosive code
     local bombEnt = ents.Create("ent_ttt_ttt2_dva_bomb")
 
     if not IsValid(bombEnt) then return false end
@@ -108,10 +102,9 @@ function SWEP:BuildBomb(ply)
     local eyeAngles = ply:EyeAngles()
     bombEnt:SetAngles(Angle(0, eyeAngles[2], eyeAngles[3]))
 
-    bombEnt:SetPos(ply:EyePos() + (ply:GetAimVector() * 16)) -- 16/2 Burgers away from your face -- 16 because 2^4
+    bombEnt:SetPos(ply:EyePos() + (ply:GetAimVector() * 16)) -- 16/2 Burgers away from your face
     bombEnt:SetOwner(ply)
     bombEnt:Spawn()
-    -- This probably needs to be here
     bombEnt:Activate()
     local phys = bombEnt:GetPhysicsObject()
 
@@ -121,13 +114,12 @@ function SWEP:BuildBomb(ply)
         return false
     end
 
-    -- Physicus activaticus (I'm bad at spell names, I'd rather keep building bombs)
     phys:Wake()
     phys:SetMass(mass)
     phys:SetVelocity(ply:GetAimVector() * shootVelocity)
 
     local function explode()
-
+        local explosionRadius = GetConVar("ttt_dvabomb_radius"):GetInt()
         -- Find ANYTHING (Actually only entitties) inside the sphere of the explosion radius
         local entityTable = ents.FindInSphere(bombEnt:GetPos(), explosionRadius)
         for _, sphereEnt in pairs(entityTable) do
@@ -147,7 +139,7 @@ function SWEP:BuildBomb(ply)
 
                 for i, trace in ipairs(traces) do
                     if trace.Entity == sphereEnt then
-                        local forceVector = self:GetForceVector(sphereEnt, bombEnt)
+                        local forceVector = self:GetForceVector(sphereEnt, bombEnt, explosionRadius)
                         sphereEnt:SetVelocity(forceVector)
                         local dmgInfo = DamageInfo()
                         local explosionDmg = GetConVar("ttt_dvabomb_damage"):GetInt()
@@ -166,30 +158,28 @@ function SWEP:BuildBomb(ply)
     end
     -- 3.5 seconds is exactly the delay needed to sync up with the boom sound
     timer.Simple(3.5, explode)
+    return true
 end
 
 function SWEP:SecondaryAttack()
+    if not GetConVar("ttt_dvabomb_secondary_sound"):GetBool() then return end
     -- More James inhibition code
     self:SetNextSecondaryFire(CurTime() + 2)
-
-    if GetConVar("ttt_dvabomb_secondary_sound"):GetBool() then
-        self:GetOwner():EmitSound(secondVoiceline, 75, 100, 0.4)
-    end
+    self:GetOwner():EmitSound(secondVoiceline, 75, 100, 0.4)
 end
 
-function SWEP:GetForceVector(hitPly, bombEnt)
-    -- On explosion, yeet whoever dares to get too close
+function SWEP:GetForceVector(hitPly, bombEnt, explosionRadius)
     local localVecFromBombToRadius = (hitPly:GetPos() - bombEnt:GetPos()):GetNormalized() * explosionRadius
     local forceVec = (bombEnt:GetPos() + localVecFromBombToRadius) - hitPly:GetPos()
     local posVec = self:GetPositiveVector(forceVec)
     -- for jumpy fun
     posVec.z = 600
-    forceVec = (posVec * forceVec)/150
+    forceVec = (posVec * forceVec)/300
     return forceVec
 end
 
 function SWEP:CalcTrace(startVector, stopVector)
-    local trace = util.TraceLine(
+    return util.TraceLine(
         {
             start = startVector,
             endpos = stopVector,
@@ -200,8 +190,6 @@ function SWEP:CalcTrace(startVector, stopVector)
             output = nil
         }
     )
-
-    return trace
 end
 
 -- Get math.abs version of vector

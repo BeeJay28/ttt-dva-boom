@@ -2,12 +2,13 @@ if engine.ActiveGamemode() ~= "terrortown" then return end
 
 -- convars added with default values
 CreateConVar("ttt_dvabomb_secondary_sound", "1", {FCVAR_REPLICATED, FCVAR_ARCHIVE, FCVAR_NOTIFY}, "Sound of the taunt secondary attack")
-
-CreateConVar("ttt_dvabomb_damage", "800", {FCVAR_REPLICATED, FCVAR_ARCHIVE, FCVAR_NOTIFY}, "Damage dealt on explosion")
+CreateConVar("ttt_dvabomb_damage", "100", {FCVAR_REPLICATED, FCVAR_ARCHIVE, FCVAR_NOTIFY}, "Damage dealt by explosion", 0, 1000)
+CreateConVar("ttt_dvabomb_radius", "850", {FCVAR_REPLICATED, FCVAR_ARCHIVE, FCVAR_NOTIFY}, "Radius of explosion", 0, 2500)
 
 hook.Add("TTTUlxInitCustomCVar", "TTTDvaBombInitRWCVar", function(name)
     ULib.replicatedWritableCvar("ttt_dvabomb_secondary_sound", "rep_ttt_dvabomb_secondary_sound", GetConVar("ttt_dvabomb_secondary_sound"):GetBool(), true, false, name)
     ULib.replicatedWritableCvar("ttt_dvabomb_damage", "rep_ttt_dvabomb_damage", GetConVar("ttt_dvabomb_damage"):GetInt(), true, false, name)
+    ULib.replicatedWritableCvar("ttt_dvabomb_radius", "rep_ttt_dvabomb_radius", GetConVar("ttt_dvabomb_radius"):GetInt(), true, false, name)
 end)
 
 if CLIENT then
@@ -35,10 +36,19 @@ if CLIENT then
         })
 
         tttrslst1:AddItem(xlib.makeslider{
-            label = "ttt_dvabomb_damage (Def. 800)",
+            label = "ttt_dvabomb_damage (Def. 100)",
             repconvar = "rep_ttt_dvabomb_damage",
             min = 0,
-            max = 2000,
+            max = 200,
+            decimal = 0,
+            parent = tttrslst1
+        })
+        
+        tttrslst1:AddItem(xlib.makeslider{
+            label = "ttt_dvabomb_radius (Def. 850)",
+            repconvar = "rep_ttt_dvabomb_radius",
+            min = 0,
+            max = 2500,
             decimal = 0,
             parent = tttrslst1
         })
